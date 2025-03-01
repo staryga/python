@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra Platformowa</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { background: black; display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 800;
+        canvas.height = 600;
+
+        class Player {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 100;
+                this.width = 40;
+                this.height = 50;
+                this.velX = 0;
+                this.velY = 0;
+                this.speed = 5;
+                this.jumpPower = 10;
+                this.gravity = 0.5;
+                this.isJumping = false;
+            }
+            draw() {
+                ctx.fillStyle = "blue";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            move(left, right, jump) {
+                if (left) this.x -= this.speed;
+                if (right) this.x += this.speed;
+                if (jump && !this.isJumping) {
+                    this.velY = -this.jumpPower;
+                    this.isJumping = true;
+                }
+                this.velY += this.gravity;
+                this.y += this.velY;
+                if (this.y + this.height >= canvas.height - 50) {
+                    this.y = canvas.height - 50 - this.height;
+                    this.isJumping = false;
+                }
+            }
+        }
+
+        class Bullet {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 5;
+                this.speed = 10;
+            }
+            draw() {
+                ctx.fillStyle = "yellow";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            update() {
+                this.y -= this.speed;
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                this.x = Math.random() * (canvas.width - 30);
+                this.y = 0;
+                this.width = 30;
+                this.height = 30;
+                this.speed = 3;
+            }
+            draw() {
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        const player = new Player();
+        const bullets = [];
+        const enemies = [];
+        let score = 0;
+        let lives = 3;
+        let gameOver = false;
+        let keys = {};
+        let startTime = Date.now();
+
+        window.addEventListener("keydown", (e) => {
+            keys[e.key] = true;
+            if (e.key === "a") bullets.push(new Bullet(player.x + player.width / 2, player.y));
+        });
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+        function gameLoop() {
+            if (gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            player.move(keys["ArrowLeft"], keys["ArrowRight"], keys[" "]);
+            player.draw();
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].update();
+                if (bullets[i].y < 0) bullets.splice(i, 1);
+                else bullets[i].draw();
+            }
+
+            if (Math.random() < 0.02) enemies.push(new Enemy());
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].update();
+                if (enemies[i].y > canvas.height) enemies.splice(i, 1);
+                else enemies[i].draw();
+            }
+
+            bullets.forEach((bullet, bi) => {
+                enemies.forEach((enemy, ei) => {
+                    if (
+                        bullet.x > enemy.x &&
+                        bullet.x < enemy.x + enemy.width &&
+                        bullet.y > enemy.y &&
+                        bullet.y < enemy.y + enemy.height
+                    ) {
+                        bullets.splice(bi, 1);
+                        enemies.splice(ei, 1);
+                        score++;
+                    }
+                });
+            });
+
+            enemies.forEach((enemy, ei) => {
+                if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                    enemies.splice(ei, 1);
+                    lives--;
+                    if (lives === 0) gameOver = true;
+                }
+            });
+
+            let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText(`Punkty: ${score}`, 10, 20);
+            ctx.fillText(`Życia: ${lives}`, 10, 40);
+            ctx.fillText(`Czas: ${elapsedTime}s`, canvas.width - 150, 20);
+
+            if (gameOver) {
+                ctx.fillText("Game Over", canvas.width / 2 - 50, canvas.height / 2);
+            } else {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        gameLoop();
+    </script>
+</body>
+</html>
