@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labirynt - Gra</title>
+    <style>
+        body { text-align: center; background-color: black; color: white; }
+        canvas { background-color: white; }
+    </style>
+</head>
+<body>
+    <h1>Labirynt - Gra</h1>
+    <canvas id="gameCanvas"></canvas>
+    <p id="info"></p>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const cols = 15, rows = 15;
+        const tileSize = 40;
+        canvas.width = cols * tileSize;
+        canvas.height = rows * tileSize;
+        
+        let player = { x: 1, y: 1 };
+        let maze = generateMaze(cols, rows);
+        let timeLeft = 60;
+        let interval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("info").innerText = `Czas: ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                alert("Koniec czasu! Przegrałeś!");
+                clearInterval(interval);
+            }
+        }, 1000);
+        
+        function generateMaze(cols, rows) {
+            let maze = Array.from({ length: rows }, () => Array(cols).fill(0));
+            maze[1][1] = 1;
+            maze[rows - 2][cols - 2] = 2;
+            return maze;
+        }
+        
+        function drawMaze() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    ctx.fillStyle = maze[y][x] === 0 ? "black" : maze[y][x] === 2 ? "green" : "white";
+                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                }
+            }
+            ctx.fillStyle = "blue";
+            ctx.beginPath();
+            ctx.arc(player.x * tileSize + tileSize / 2, player.y * tileSize + tileSize / 2, tileSize / 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        window.addEventListener("keydown", (e) => {
+            let newX = player.x, newY = player.y;
+            if (e.key === "ArrowLeft") newX--;
+            if (e.key === "ArrowRight") newX++;
+            if (e.key === "ArrowUp") newY--;
+            if (e.key === "ArrowDown") newY++;
+            if (maze[newY] && maze[newY][newX] !== 0) {
+                player.x = newX;
+                player.y = newY;
+                if (maze[newY][newX] === 2) {
+                    alert("Gratulacje! Wygrałeś!");
+                    clearInterval(interval);
+                }
+            }
+            drawMaze();
+        });
+        
+        drawMaze();
+    </script>
+</body>
+</html>
