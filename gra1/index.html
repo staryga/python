@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra w losowanie liczb</title>
+    <script>
+        function rozpocznijGre() {
+            const imie = prompt("Jestem grą losującą liczby. Jak masz na imię?");
+            const maxliczba = prompt("Cześć " + imie + ", Podaj maksymalną liczbę, którą mogę wylosować.");
+            const maxliczba2 = parseInt(maxliczba);
+            const losowanaliczba = Math.floor(Math.random() * maxliczba2) + 1;
+
+            let prob = 0;
+            let zgadywanaliczba = -1;
+            alert("Dobrzę " + imie + ", będę losował od 1 do " + maxliczba2 + ". Możesz teraz spróbować zgadnąć wylosowaną liczbę. Masz 5 prób.");
+
+            while (prob < 5 && zgadywanaliczba !== losowanaliczba) {
+                zgadywanaliczba = prompt("Próba " + (prob + 1) + ": Jak myślisz, jaka to liczba?");
+                zgadywanaliczba = parseInt(zgadywanaliczba);
+                
+                if (zgadywanaliczba < losowanaliczba) {
+                    alert("Moja liczba jest większa.");
+                } else if (zgadywanaliczba > losowanaliczba) {
+                    alert("Moja liczba jest mniejsza.");
+                } else {
+                    alert("Gratulacje " + imie + "! Wylosowana liczba to " + losowanaliczba + ". Udało Ci się zgadnąć za " + (prob + 1) + " razem.");
+                    return;
+                }
+
+                prob++;
+            }
+
+            if (zgadywanaliczba !== losowanaliczba) {
+                alert(imie + ", Przykro mi, nie udało Ci się zgadnąć, moja liczba to " + losowanaliczba);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Gra w losowanie liczb</h1>
+    <button onclick="rozpocznijGre()">Zacznij grę</button>
+</body>
+</html>
