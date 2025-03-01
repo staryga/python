@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zak - Pixel Mag</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { background: black; display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 800;
+        canvas.height = 600;
+
+        class Player {
+            constructor() {
+                this.width = 40;
+                this.height = 40;
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - 50;
+                this.speed = 5;
+            }
+            draw() {
+                ctx.fillStyle = "white";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            move(left, right) {
+                if (left && this.x > 0) this.x -= this.speed;
+                if (right && this.x + this.width < canvas.width) this.x += this.speed;
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                this.width = 30;
+                this.height = 30;
+                this.x = Math.random() * (canvas.width - this.width);
+                this.y = Math.random() * -100 - 40;
+                this.speed = Math.random() * 3 + 2;
+            }
+            draw() {
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.y = Math.random() * -100 - 40;
+                    this.x = Math.random() * (canvas.width - this.width);
+                    this.speed = Math.random() * 3 + 2;
+                }
+            }
+        }
+
+        class Spell {
+            constructor(x, y) {
+                this.width = 10;
+                this.height = 20;
+                this.x = x;
+                this.y = y;
+                this.speed = -7;
+            }
+            draw() {
+                ctx.fillStyle = "blue";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            update() {
+                this.y += this.speed;
+            }
+        }
+
+        const player = new Player();
+        const enemies = Array.from({ length: 5 }, () => new Enemy());
+        const spells = [];
+
+        let keys = {};
+
+        window.addEventListener("keydown", (e) => {
+            keys[e.key] = true;
+            if (e.key === " ") spells.push(new Spell(player.x + player.width / 2 - 5, player.y));
+        });
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            player.move(keys["ArrowLeft"], keys["ArrowRight"]);
+            player.draw();
+
+            enemies.forEach(enemy => {
+                enemy.update();
+                enemy.draw();
+            });
+
+            for (let i = spells.length - 1; i >= 0; i--) {
+                spells[i].update();
+                if (spells[i].y + spells[i].height < 0) spells.splice(i, 1);
+                else spells[i].draw();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
